@@ -75,7 +75,7 @@ app.post(['/info', '/api/audio/info'], async (req, res) => {
     'youtube:player_client=ios,mweb',
   ];
 
-  const cookiesPath = getCookiesPath();
+  const cookiesPath = req.query?.nocookies || req.body?.nocookies ? null : getCookiesPath();
   if (cookiesPath) {
     infoArgs.push('--cookies', cookiesPath);
   }
@@ -160,7 +160,7 @@ app.get(['/download', '/api/audio/download'], (req, res) => {
     cleanQuality,
   ];
 
-  const cookiesPath = getCookiesPath();
+  const cookiesPath = req.query.nocookies ? null : getCookiesPath();
   if (cookiesPath) {
     ytdlpArgs.push('--cookies', cookiesPath);
   }
