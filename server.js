@@ -53,9 +53,9 @@ app.post(['/info', '/api/audio/info'], async (req, res) => {
     '--no-warnings',
     '--no-check-certificates',
     '--user-agent',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'com.google.android.youtube/19.29.37 (Linux; U; Android 14) gzip',
     '--extractor-args',
-    'youtube:player_client=android,web,ios',
+    'youtube:player_client=android,ios;player_skip=webpage,configs',
     cleanUrl,
   ]);
 
@@ -121,9 +121,9 @@ app.get(['/download', '/api/audio/download'], (req, res) => {
     '--no-warnings',
     '--no-check-certificates',
     '--user-agent',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'com.google.android.youtube/19.29.37 (Linux; U; Android 14) gzip',
     '--extractor-args',
-    'youtube:player_client=android,web,ios',
+    'youtube:player_client=android,ios;player_skip=webpage,configs',
     '--max-filesize',
     '65M',
     '-x',
