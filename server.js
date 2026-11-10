@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 app.get(['/health', '/api/audio/health'], (req, res) => {
   res.json({
     status: 'online',
-    version: '1.1.0-ios',
+    version: '1.2.0-ejs',
     service: 'Tour Lyrics yt-dlp Transcoder Bridge',
     time: new Date().toISOString(),
     nodeVersion: process.version,
@@ -71,8 +71,10 @@ app.post(['/info', '/api/audio/info'], async (req, res) => {
     '--no-playlist',
     '--no-warnings',
     '--no-check-certificates',
-    '--extractor-args',
-    'youtube:player_client=ios,mweb',
+    '--remote-components',
+    'ejs:github',
+    '--js-runtimes',
+    'node',
   ];
 
   const cookiesPath = req.query?.nocookies || req.body?.nocookies ? null : getCookiesPath();
@@ -145,10 +147,12 @@ app.get(['/download', '/api/audio/download'], (req, res) => {
     '--no-playlist',
     '--no-warnings',
     '--no-check-certificates',
-    '--extractor-args',
-    'youtube:player_client=ios,mweb',
+    '--remote-components',
+    'ejs:github',
+    '--js-runtimes',
+    'node',
     '-f',
-    'bestaudio/best',
+    'ba/b',
     '--js-runtimes',
     'node',
     '--max-filesize',
