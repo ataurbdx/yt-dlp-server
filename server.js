@@ -70,8 +70,10 @@ app.post(['/info', '/api/audio/info'], async (req, res) => {
     '--no-playlist',
     '--no-warnings',
     '--no-check-certificates',
+    '--user-agent',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     '--extractor-args',
-    'youtube:player_client=tv_embedded,ios,android;player_skip=webpage,configs',
+    'youtube:player_client=android,web',
   ];
 
   const cookiesPath = getCookiesPath();
@@ -144,8 +146,10 @@ app.get(['/download', '/api/audio/download'], (req, res) => {
     '--no-playlist',
     '--no-warnings',
     '--no-check-certificates',
+    '--user-agent',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     '--extractor-args',
-    'youtube:player_client=tv_embedded,ios,android;player_skip=webpage,configs',
+    'youtube:player_client=android,web',
     '--max-filesize',
     '65M',
     '-x',
