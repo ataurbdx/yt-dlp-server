@@ -18,6 +18,16 @@ function cleanYouTubeUrl(raw) {
   return match && match[1] ? `https://www.youtube.com/watch?v=${match[1]}` : trimmed;
 }
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Tour Lyrics yt-dlp Transcoder Bridge',
+    message: 'Backend API is running and ready for Android / Web downloads!',
+    endpoints: ['/health', '/download', '/info'],
+  });
+});
+
 // Health check endpoint (supports both /health and /api/audio/health)
 app.get(['/health', '/api/audio/health'], (req, res) => {
   res.json({
