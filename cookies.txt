@@ -1,0 +1,13 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+
+.youtube.com	TRUE	/	TRUE	1809852600	__Secure-YNID	CusBCAUSnQEBDB6PDACei5rKH_uMcEsZ1yQ5hdpBsaPrZ0kw1OqKZZXFD573yD-bfi_8SuIk1_gcZht5CWuw1iZtfwZ0NuqJHAlvfVT0zNGVAs0nb9a0vA7AZJ3hftD8jdB9dHERtivjvF1ZBI2fpfcAGJTzqHKFbhVqG7ot4P36EESlYHbSE16WtU9ioacfK5KkprYul8v0l8W6Cg_Cn-PlivdtKAUyRQEcWPVqHPaIINEOjkk3agS7ENDjWIaREwl3zKqa_h5J5uRZIiMe6gRZGehJutdc22PcZnrnWMseSbts_M2I4-Fw8sTaBg
+.youtube.com	TRUE	/	TRUE	1809852603	VISITOR_INFO1_LIVE	snbMmYO6OSI
+.youtube.com	TRUE	/	TRUE	1809852603	VISITOR_PRIVACY_METADATA	CgJCRBIEGgAgbg%3D%3D
+.youtube.com	TRUE	/	TRUE	1828860604	PREF	tz=Asia.Dhaka&f7=100
+.youtube.com	TRUE	/	TRUE	1807529764	__Secure-BUCKET	CO0G
+.youtube.com	TRUE	/	TRUE	0	YSC	qCcAjKY46gg
+.youtube.com	TRUE	/	FALSE	0	wide	1
+.youtube.com	TRUE	/	TRUE	1794302400	GPS	1
+.youtube.com	TRUE	/	TRUE	1809852600	__Secure-ROLLOUT_TOKEN	CM3OmMWmwMLLGRDq9dug0fSVAxjrnfbOgv2XAw%3D%3D
