@@ -32,6 +32,7 @@ app.get('/', (req, res) => {
 app.get(['/health', '/api/audio/health'], (req, res) => {
   res.json({
     status: 'online',
+    version: '1.1.0-ios',
     service: 'Tour Lyrics yt-dlp Transcoder Bridge',
     time: new Date().toISOString(),
     nodeVersion: process.version,
