@@ -39,6 +39,24 @@ app.get(['/health', '/api/audio/health'], (req, res) => {
   });
 });
 
+// Helper: Get or write cookies if provided
+function getCookiesPath() {
+  const localCookies = path.join(process.cwd(), 'cookies.txt');
+  if (fs.existsSync(localCookies)) {
+    return localCookies;
+  }
+  if (process.env.YOUTUBE_COOKIES && process.env.YOUTUBE_COOKIES.trim()) {
+    const tmpCookies = path.join(os.tmpdir(), 'yt_cookies.txt');
+    try {
+      fs.writeFileSync(tmpCookies, process.env.YOUTUBE_COOKIES.trim(), 'utf8');
+      return tmpCookies;
+    } catch (e) {
+      console.warn('Failed to write YOUTUBE_COOKIES to temp file:', e.message);
+    }
+  }
+  return null;
+}
+
 // Extract track metadata without downloading
 app.post(['/info', '/api/audio/info'], async (req, res) => {
   const { url } = req.body;
@@ -47,17 +65,23 @@ app.post(['/info', '/api/audio/info'], async (req, res) => {
   }
 
   const cleanUrl = cleanYouTubeUrl(url);
-  const ytdlp = spawn('yt-dlp', [
+  const infoArgs = [
     '--dump-single-json',
     '--no-playlist',
     '--no-warnings',
     '--no-check-certificates',
-    '--user-agent',
-    'com.google.android.youtube/19.29.37 (Linux; U; Android 14) gzip',
     '--extractor-args',
-    'youtube:player_client=android,ios;player_skip=webpage,configs',
-    cleanUrl,
-  ]);
+    'youtube:player_client=tv_embedded,ios,android;player_skip=webpage,configs',
+  ];
+
+  const cookiesPath = getCookiesPath();
+  if (cookiesPath) {
+    infoArgs.push('--cookies', cookiesPath);
+  }
+
+  infoArgs.push(cleanUrl);
+
+  const ytdlp = spawn('yt-dlp', infoArgs);
 
   let stdout = '';
   let stderr = '';
@@ -120,10 +144,8 @@ app.get(['/download', '/api/audio/download'], (req, res) => {
     '--no-playlist',
     '--no-warnings',
     '--no-check-certificates',
-    '--user-agent',
-    'com.google.android.youtube/19.29.37 (Linux; U; Android 14) gzip',
     '--extractor-args',
-    'youtube:player_client=android,ios;player_skip=webpage,configs',
+    'youtube:player_client=tv_embedded,ios,android;player_skip=webpage,configs',
     '--max-filesize',
     '65M',
     '-x',
@@ -131,10 +153,14 @@ app.get(['/download', '/api/audio/download'], (req, res) => {
     cleanFormat,
     '--audio-quality',
     cleanQuality,
-    '-o',
-    `${tempPrefix}.%(ext)s`,
-    cleanUrl,
   ];
+
+  const cookiesPath = getCookiesPath();
+  if (cookiesPath) {
+    ytdlpArgs.push('--cookies', cookiesPath);
+  }
+
+  ytdlpArgs.push('-o', `${tempPrefix}.%(ext)s`, cleanUrl);
 
   let responded = false;
   const sendJson = (status, data) => {
