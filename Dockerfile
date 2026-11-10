@@ -18,6 +18,7 @@ COPY package.json ./
 RUN npm install --production
 
 COPY server.js ./
+COPY cookies.txt* ./
 
 EXPOSE 8080
 
