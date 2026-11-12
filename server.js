@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
     status: 'online',
     service: 'Tour Lyrics yt-dlp Transcoder Bridge',
     message: 'Backend API is running and ready for Android / Web downloads!',
-    endpoints: ['/health', '/download', '/info'],
+    endpoints: ['/health', '/download', '/info', '/playlist'],
   });
 });
 
@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 app.get(['/health', '/api/audio/health'], (req, res) => {
   res.json({
     status: 'online',
-    version: '1.3.0-visionos',
+    version: '1.4.0-playlist',
     service: 'Tour Lyrics yt-dlp Transcoder Bridge',
     time: new Date().toISOString(),
     nodeVersion: process.version,
@@ -116,6 +116,129 @@ app.post(['/info', '/api/audio/info'], async (req, res) => {
       res.status(500).json({ error: 'Failed to parse metadata JSON' });
     }
   });
+});
+
+// Extract playlist metadata & individual track list via yt-dlp (metadata only, no audio download)
+app.all(['/playlist', '/api/playlist', '/api/audio/playlist'], async (req, res) => {
+  const url = String(req.body?.url || req.query?.url || '').trim();
+  if (!url) {
+    return res.status(400).json({ error: 'Query parameter or body property "url" is required' });
+  }
+
+  const cleanUrl = cleanYouTubeUrl(url);
+
+  let responded = false;
+  const sendJson = (status, data) => {
+    if (responded || res.headersSent) return;
+    responded = true;
+    res.status(status).json(data);
+  };
+
+  try {
+    const ytdlpArgs = [
+      '--dump-single-json',
+      '--flat-playlist',
+      '--skip-download',
+      '--no-warnings',
+      '--no-check-certificates',
+      '--extractor-args',
+      'youtube:player_client=visionos,android,web',
+      '--remote-components',
+      'ejs:github',
+      '--js-runtimes',
+      'node',
+    ];
+
+    const cookiesPath = req.query?.nocookies || req.body?.nocookies ? null : getCookiesPath();
+    if (cookiesPath) {
+      ytdlpArgs.push('--cookies', cookiesPath);
+    }
+
+    ytdlpArgs.push(cleanUrl);
+
+    const ytdlp = spawn('yt-dlp', ytdlpArgs);
+
+    let stdout = '';
+    let stderr = '';
+
+    const timeout = setTimeout(() => {
+      try { ytdlp.kill('SIGTERM'); } catch {}
+      sendJson(504, { error: 'Playlist extraction timed out after 45 seconds.' });
+    }, 45000);
+
+    ytdlp.stdout?.on('data', (d) => {
+      stdout += d.toString();
+    });
+    ytdlp.stderr?.on('data', (d) => {
+      stderr += d.toString();
+    });
+
+    ytdlp.on('error', (err) => {
+      clearTimeout(timeout);
+      sendJson(500, { error: `yt-dlp execution error: ${err.message}` });
+    });
+
+    ytdlp.on('close', (code) => {
+      clearTimeout(timeout);
+      if (code !== 0 && !stdout) {
+        return sendJson(500, {
+          error: stderr.replace(/WARNING:.*\n?/g, '').trim() || 'Failed to extract playlist information.',
+        });
+      }
+      try {
+        const info = JSON.parse(stdout);
+        const entries = (info.entries || []).map((e, idx) => {
+          const vidId = e.id || e.videoId;
+          let thumb = '';
+          if (Array.isArray(e.thumbnails) && e.thumbnails.length > 0) {
+            thumb = e.thumbnails[e.thumbnails.length - 1]?.url || e.thumbnails[0]?.url;
+          } else if (e.thumbnail) {
+            thumb = e.thumbnail;
+          } else if (vidId) {
+            thumb = `https://img.youtube.com/vi/${vidId}/hqdefault.jpg`;
+          }
+
+          return {
+            id: vidId,
+            videoId: vidId,
+            title: e.title || `Track ${idx + 1}`,
+            duration: e.duration || 0,
+            thumbnail: thumb,
+            thumbnailUrl: thumb,
+            url: e.url || (vidId ? `https://www.youtube.com/watch?v=${vidId}` : ''),
+            youtubeUrl: e.url || (vidId ? `https://www.youtube.com/watch?v=${vidId}` : ''),
+            uploader: e.uploader || e.channel || info.uploader || 'YouTube',
+            channelTitle: e.uploader || e.channel || info.uploader || 'YouTube',
+            position: idx,
+          };
+        }).filter((e) => Boolean(e.videoId) && e.title !== '[Private video]' && e.title !== '[Deleted video]');
+
+        let playlistThumb = '';
+        if (Array.isArray(info.thumbnails) && info.thumbnails.length > 0) {
+          playlistThumb = info.thumbnails[info.thumbnails.length - 1]?.url || info.thumbnails[0]?.url;
+        } else if (info.thumbnail) {
+          playlistThumb = info.thumbnail;
+        } else if (entries[0]?.thumbnailUrl) {
+          playlistThumb = entries[0].thumbnailUrl;
+        }
+
+        sendJson(200, {
+          id: info.id,
+          title: info.title || 'YouTube Playlist',
+          author: info.uploader || info.channel || 'YouTube Community',
+          uploader: info.uploader || info.channel || 'YouTube Community',
+          thumbnail: playlistThumb,
+          totalTracks: entries.length,
+          items: entries,
+          entries: entries,
+        });
+      } catch (e) {
+        sendJson(500, { error: 'Failed to parse playlist JSON from yt-dlp.' });
+      }
+    });
+  } catch (err) {
+    sendJson(500, { error: err?.message || 'Server error' });
+  }
 });
 
 // Download & transcode audio stream to client (supports both /download and /api/audio/download)
